@@ -15,21 +15,19 @@ app.use("/customer", session({
 }));
 
 app.use("/customer/auth/*", function auth(req, res, next) {
-    // Check if access token exists in session
-    if (req.session.authorization) {
-        let token = req.session.authorization['accessToken'];
-        
-        // Verify the JWT token
+    // Ensure session and accessToken exist
+    if (req.session && req.session.authorization && req.session.authorization['accessToken']) {
+        const token = req.session.authorization['accessToken'];
         jwt.verify(token, "access", (err, user) => {
             if (!err) {
                 req.user = user;
-                next(); // proceed to the next middleware
+                next();
             } else {
-                return res.status(403).json({message: "User not authenticated"});
+                return res.status(403).json({ message: "Invalid or expired token. User not authenticated." });
             }
         });
     } else {
-        return res.status(403).json({message: "User not logged in"});
+        return res.status(403).json({ message: "User not logged in or session expired." });
     }
 });
 
